@@ -22,7 +22,7 @@ if [ ! -f ${CERT_DIR}/server.crt ]; then
     openssl genrsa -out ${CERT_DIR}/server.key ${KEY_SIZE}
     chmod 400 ${CERT_DIR}/server.key
     chown postgres:postgres ${CERT_DIR}/server.key
-    openssl req -new -key ${CERT_DIR}/server.key -days 3650 -out ${CERT_DIR}/server.crt -x509 -subj "/C=$KEY_COUNTRY/ST=$KEY_PROVINCE/L=$KEY_CITY/O=$KEY_ORG/CN=$KEY_HOST";
+    openssl req -new -key ${CERT_DIR}/server.key -days ${KEY_EXPIRE} -out ${CERT_DIR}/server.crt -x509 -subj "/C=$KEY_COUNTRY/ST=$KEY_PROVINCE/L=$KEY_CITY/O=$KEY_ORG/CN=$KEY_HOST";
     cp ${CERT_DIR}/server.crt ${CERT_DIR}/root.crt
 fi
 
