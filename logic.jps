@@ -132,17 +132,17 @@ actions:
                 do
                     sed -ci -e "s/^[[:space:]]*#[[:space:]]*${i}[[:space:]]*=/${i} =/" ${globals.pgConfig}
                 done
-                if [ grep -q '^ssl_cert_file' ${globals.pgConfig} ]; then 
+                if grep -q '^ssl_cert_file' ${globals.pgConfig}; then 
                     sed -ci -e "s|ssl_cert_file.*|ssl_cert_file = '/var/lib/jelastic/keys/SSL-TLS/server/server.crt'|" ${globals.pgConfig};
                 else 
                     echo "ssl_cert_file = '/var/lib/jelastic/keys/SSL-TLS/server/server.crt'" >> ${globals.pgConfig};
                 fi
-                if [ grep -q '^ssl_ca_file' ${globals.pgConfig} ]; then 
+                if grep -q '^ssl_ca_file' ${globals.pgConfig}; then 
                     sed -ci -e "s|ssl_ca_file.*|ssl_ca_file = '/var/lib/jelastic/keys/SSL-TLS/server/root.crt'|" ${globals.pgConfig};             
                 else 
                     echo "ssl_ca_file = '/var/lib/jelastic/keys/SSL-TLS/server/root.crt'" >> ${globals.pgConfig};
                 fi
-                if [ grep -q '^ssl_key_file' ${globals.pgConfig} ]; then
+                if grep -q '^ssl_key_file' ${globals.pgConfig}; then
                     sed -ci -e "s|ssl_key_file.*|ssl_key_file = '/var/lib/jelastic/keys/SSL-TLS/server/server.key'|" ${globals.pgConfig};
                 else 
                     echo "ssl_key_file = '/var/lib/jelastic/keys/SSL-TLS/server/server.key'" >> ${globals.pgConfig};
