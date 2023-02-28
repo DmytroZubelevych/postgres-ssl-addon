@@ -179,3 +179,5 @@ actions:
         fi
         jem service restart
         rm -rf /var/lib/jelastic/keys/SSL-TLS/client /var/lib/jelastic/keys/SSL-TLS/serv
+        sed -ci -e '/\/var\/lib\/jelastic\/keys\/SSL-TLS/d' /etc/jelastic/redeploy.conf
+      user: root
