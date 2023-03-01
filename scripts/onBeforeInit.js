@@ -4,6 +4,7 @@ var envs = [];
 var nodes = {};
 var stackVersion;
 var nodeMajorVersion;
+var envCaption;
 
 for (var i = 0, envInfo, env; envInfo = resp.infos[i]; i++) {
   env = envInfo.env;
@@ -29,9 +30,14 @@ for (var i = 0, envInfo, env; envInfo = resp.infos[i]; i++) {
     }
 
     if (nodes[env.envName] && nodes[env.envName].length > 0) {
+      if ( env.displayName == env.envName ) {
+          envCaption = env.envName;
+      } else {
+          envCaption = env.displayName + ' (' + env.envName + ')';
+      }
       envs.push({
         value: env.envName,
-        caption: (env.displayName || env.envName)
+        caption: envCaption
       });
     }
   }
