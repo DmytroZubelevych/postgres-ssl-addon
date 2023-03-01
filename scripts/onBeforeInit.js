@@ -16,7 +16,7 @@ for (var i = 0, envInfo, env; envInfo = resp.infos[i]; i++) {
       var stackVersion = node.version;
       var nodeMajorVersion = stackVersion.split(".")[0];
 
-      if ((node.nodeType == "postgresql" && nodeMajorVersion > 10) || node.nodeType == "pgpool2") {
+      if ((node.nodeType.indexOf('postgres') > -1 && nodeMajorVersion > 10) || node.nodeType == "pgpool2") {
         if (!nodes[env.envName].groups[node.nodeGroup]) {
           nodes[env.envName].push({
             value: node.nodeGroup,
