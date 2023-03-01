@@ -178,6 +178,6 @@ actions:
             sed -ci -e "s|hostssl|host|" ${globals.pgpoolConfig}
         fi
         jem service restart
-        rm -rf /var/lib/jelastic/keys/SSL-TLS/client /var/lib/jelastic/keys/SSL-TLS/serv
+        rm -rf /var/lib/jelastic/keys/SSL-TLS/client /var/lib/jelastic/keys/SSL-TLS/server
         sed -ci -e '/\/var\/lib\/jelastic\/keys\/SSL-TLS/d' /etc/jelastic/redeploy.conf
       user: root
