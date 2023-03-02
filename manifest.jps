@@ -31,4 +31,4 @@ onInstall:
       jps: logic.jps?_r=${fn.random}
       settings:
         nodeGroups: ${settings.nodeGroups}
-        
+        envName: ${settings.envName}
