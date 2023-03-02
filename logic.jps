@@ -166,6 +166,7 @@ actions:
   
   disableSSL:
     - cmd[${targetNodes.nodeGroup}]: |-
+        jem service stop
         if [ -e ${globals.pgConfig} ]; then
             sed -ci -e 's/^[[:space:]]*ssl[[:space:]]*=[[:space:]]*on/ssl = off/' ${globals.pgConfig}
         fi
@@ -177,7 +178,6 @@ actions:
             sed -ci -e "s/^[[:space:]]*#[[:space:]]*enable_pool_hba[[:space:]]*=.*/enable_pool_hba = off/" ${globals.pgpoolConfig}
             sed -ci -e "s|hostssl|host|" ${globals.pgpoolConfig}
         fi
-        jem service restart
         for i in client.crt client.key
         do
             rm -f /var/lib/jelastic/keys/SSL-TLS/client/${i}
@@ -187,4 +187,5 @@ actions:
             rm -f /var/lib/jelastic/keys/SSL-TLS/server/${i}
         done
         sed -ci -e '/\/var\/lib\/jelastic\/keys\/SSL-TLS/d' /etc/jelastic/redeploy.conf
+        jem service start
       user: root
