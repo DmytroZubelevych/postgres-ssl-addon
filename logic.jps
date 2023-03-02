@@ -40,10 +40,10 @@ onAfterResetServicePassword[sqldb]:
   - setWebadminPasswordOnPgPool
 
 onAfterClone:
-  - script: delete MANIFEST.id; return {result:0, jps:MANIFEST};
+  - script: return {result:0, jps:MANIFEST};
   - install [${settings.nodeGroups}]:
-      envName: ${settings.envName}
-      jps: logic.jps?_r=${fn.random}
+      envName: ${event.response.env.envName}
+      jps: ${response.jps}
       settings:
         nodeGroups: ${settings.nodeGroups}
         envName: ${settings.envName}
