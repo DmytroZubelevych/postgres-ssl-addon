@@ -41,8 +41,12 @@ onAfterResetServicePassword[sqldb]:
 
 onAfterClone:
   - script: delete MANIFEST.id; return {result:0, jps:MANIFEST};
-  - install: ${response.jps}
-    envName: ${event.response.env.envName}
+  - install [${settings.nodeGroups}]:
+      envName: ${settings.envName}
+      jps: logic.jps?_r=${fn.random}
+      settings:
+        nodeGroups: ${settings.nodeGroups}
+        envName: ${settings.envName}
 
 buttons:
   - confirmText: Do you want to reissue the SSL certificates and key (service restart needed)?
