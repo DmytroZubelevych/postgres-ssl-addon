@@ -29,3 +29,6 @@ onInstall:
   - install [${settings.nodeGroups}]:
       envName: ${settings.envName}
       jps: logic.jps?_r=${fn.random}
+      settings:
+        nodeGroups: ${settings.nodeGroups}
+        
