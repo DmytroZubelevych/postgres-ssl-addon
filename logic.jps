@@ -165,7 +165,7 @@ actions:
             sed -ci -e "s/^[[:space:]]*#[[:space:]]*pool_passwd[[:space:]]*=/pool_passwd  =/" ${globals.pgpoolConfig}
             sed -ci -e "s|^[[:space:]]*#[[:space:]]*ssl_key[[:space:]]*=.*|ssl_key = '/var/lib/jelastic/keys/SSL-TLS/server/server.key'|" ${globals.pgpoolConfig}
             sed -ci -e "s|^[[:space:]]*#[[:space:]]*ssl_cert[[:space:]]*=.*|ssl_cert = '/var/lib/jelastic/keys/SSL-TLS/server/server.crt'|" ${globals.pgpoolConfig}
-            sed -ci -e "s|^[[:space:]]*#[[:space:]]*ssl_cert[[:space:]]*=.*|ssl_ca_cert = '/var/lib/jelastic/keys/SSL-TLS/server/root.crt'|" ${globals.pgpoolConfig}
+            sed -ci -e "s|^[[:space:]]*#[[:space:]]*ssl_ca_cert[[:space:]]*=.*|ssl_ca_cert = '/var/lib/jelastic/keys/SSL-TLS/server/root.crt'|" ${globals.pgpoolConfig}
             sed -ci -e "s/^[[:space:]]*host[[:space:]]*all[[:space:]]*all[[:space:]]*0.0.0.0\/0[[:space:]]*\(md5\|scram-sha-256\)[[:space:]]*/hostssl    all    all    0.0.0.0\/0    scram-sha-256/" /etc/pgpool-II/pool_hba.conf
         fi
         jem service restart
@@ -183,6 +183,9 @@ actions:
             sed -ci -e "s/^[[:space:]]*ssl[[:space:]]*=.*/ssl = off/" ${globals.pgpoolConfig}
             sed -ci -e "s/^[[:space:]]*enable_pool_hba[[:space:]]*=.*/enable_pool_hba = off/" ${globals.pgpoolConfig}
             sed -ci -e "s/^[[:space:]]*pool_passwd[[:space:]]*=/#pool_passwd  =/" ${globals.pgpoolConfig}
+            sed -ci -e "s|^[[:space:]]*ssl_key[[:space:]]*=|#ssl_key =|" ${globals.pgpoolConfig}
+            sed -ci -e "s|^[[:space:]]*ssl_cert[[:space:]]*=|#ssl_cert =|" ${globals.pgpoolConfig}
+            sed -ci -e "s|^[[:space:]]*ssl_ca_cert[[:space:]]*=|#ssl_ca_cert =|" ${globals.pgpoolConfig}
             sed -ci -e "s|hostssl|host|" ${globals.pgpoolConfig}
         fi
         for i in client.crt client.key root.crt
