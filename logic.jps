@@ -159,7 +159,9 @@ actions:
             sed -ci -e "s/host[[:space:]]*all[[:space:]]*all[[:space:]]*0.0.0.0\/0[[:space:]]*\(md5\|scram-sha-256\)[[:space:]]*/hostssl    all    all    0.0.0.0\/0    scram-sha-256/" ${globals.pgHbaConfig}
         else
             sed -ci -e "s/^[[:space:]]*#[[:space:]]*ssl[[:space:]]*=.*/ssl = on/" ${globals.pgpoolConfig}
+            sed -ci -e "s/^[[:space:]]*ssl[[:space:]]*=.*/ssl = on/" ${globals.pgpoolConfig}
             sed -ci -e "s/^[[:space:]]*#[[:space:]]*enable_pool_hba[[:space:]]*=.*/enable_pool_hba = on/" ${globals.pgpoolConfig}
+            sed -ci -e "s/^[[:space:]]*enable_pool_hba[[:space:]]*=.*/enable_pool_hba = on/" ${globals.pgpoolConfig}
             sed -ci -e "s/^[[:space:]]*#[[:space:]]*pool_passwd [[:space:]]*=.*/pool_passwd  = 'pool_passwd'/" ${globals.pgpoolConfig}
             sed -ci -e "s|^[[:space:]]*#[[:space:]]*ssl_key[[:space:]]*=.*|ssl_key = '/var/lib/jelastic/keys/SSL-TLS/server/server.key'|" ${globals.pgpoolConfig}
             sed -ci -e "s|^[[:space:]]*#[[:space:]]*ssl_cert[[:space:]]*=.*|ssl_cert = '/var/lib/jelastic/keys/SSL-TLS/server/server.crt'|" ${globals.pgpoolConfig}
