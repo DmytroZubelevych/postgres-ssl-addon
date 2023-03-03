@@ -178,8 +178,8 @@ actions:
             sed -ci -e "s|hostssl|host|" ${globals.pgHbaConfig}
         fi
         if [ -e ${globals.pgpoolConfig} ]; then
-            sed -ci -e "s/^[[:space:]]*#[[:space:]]*ssl[[:space:]]*=.*/ssl = off/" ${globals.pgpoolConfig}
-            sed -ci -e "s/^[[:space:]]*#[[:space:]]*enable_pool_hba[[:space:]]*=.*/enable_pool_hba = off/" ${globals.pgpoolConfig}
+            sed -ci -e "s/^[[:space:]]*ssl[[:space:]]*=.*/ssl = off/" ${globals.pgpoolConfig}
+            sed -ci -e "s/^[[:space:]]*enable_pool_hba[[:space:]]*=.*/enable_pool_hba = off/" ${globals.pgpoolConfig}
             sed -ci -e "s|hostssl|host|" ${globals.pgpoolConfig}
         fi
         for i in client.crt client.key root.crt
