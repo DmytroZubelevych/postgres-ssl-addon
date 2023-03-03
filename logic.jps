@@ -191,6 +191,11 @@ actions:
             rm -f /var/lib/jelastic/keys/SSL-TLS/server/${i}
         done
         sed -ci -e '/\/var\/lib\/jelastic\/keys\/SSL-TLS/d' /etc/jelastic/redeploy.conf
-        rm -rf /var/lib/jelastic/keys/SSL-TLS/{client,server}
+        for i in client server
+        do
+            if [ -z "$(ls -A /var/lib/jelastic/keys/SSL-TLS/${i})" ]; then
+                rm -rf /var/lib/jelastic/keys/SSL-TLS/${i}
+            fi
+        done
         jem service start
       user: root
