@@ -112,9 +112,10 @@ actions:
         pswd: ${response.out}
 
   setWebadminPasswordOnPgPool:
-    - cmd[pgpool]: |-
-        [ -f ~/.pgpoolkey ] || echo 'defaultpgpoolkey' > ~/.pgpoolkey; chmod 600 ~/.pgpoolkey
-        pg_enc -m -f /etc/pgpool-II/pgpool.conf -u webadmin ${globals.pswd}
+    - if (nodes.ctrl):
+      - cmd[pgpool]: |-
+          [ -f ~/.pgpoolkey ] || echo 'defaultpgpoolkey' > ~/.pgpoolkey; chmod 600 ~/.pgpoolkey
+          pg_enc -m -f /etc/pgpool-II/pgpool.conf -u webadmin ${globals.pswd}
 
   enableSSL:
     - getPswd
