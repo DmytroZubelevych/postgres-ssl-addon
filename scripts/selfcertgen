@@ -27,17 +27,20 @@ if [ ! -f ${CERT_DIR}/server.crt ]; then
 fi
 
 #generating client certs
-if [ "x${PG_USER}" == "xwebadmin" ]; then
-    CLIENT_CERT_NAME="client"
-else
-    CLIENT_CERT_NAME="${PG_USER}"
-fi
+if [ "x${COMPUTE_TYPE}" == "xpostgres" ]; then
+    #generating client certs
+    if [ "x${PG_USER}" == "xwebadmin" ]; then
+        CLIENT_CERT_NAME="client"
+    else
+        CLIENT_CERT_NAME="${PG_USER}"
+    fi
 
-if [ ! -f ${CERT_DIR}/${CLIENT_CERT_NAME}.crt ]; then
-    openssl genrsa -out ${CERT_DIR}/${CLIENT_CERT_NAME}.key ${KEY_SIZE}
-    openssl req -new -key ${CERT_DIR}/${CLIENT_CERT_NAME}.key -out ${CERT_DIR}/${CLIENT_CERT_NAME}.csr -subj "/C=$KEY_COUNTRY/ST=$KEY_PROVINCE/L=$KEY_CITY/O=$KEY_ORG/CN=$PG_USER"
-    #signing the client cert
-    openssl x509 -req -in ${CERT_DIR}/${CLIENT_CERT_NAME}.csr -CA ${CERT_DIR}/root.crt -CAkey ${CERT_DIR}/server.key -out ${CERT_DIR}/${CLIENT_CERT_NAME}.crt -CAcreateserial
+    if [ ! -f ${CERT_DIR}/${CLIENT_CERT_NAME}.crt ]; then
+        openssl genrsa -out ${CERT_DIR}/${CLIENT_CERT_NAME}.key ${KEY_SIZE}
+        openssl req -new -key ${CERT_DIR}/${CLIENT_CERT_NAME}.key -out ${CERT_DIR}/${CLIENT_CERT_NAME}.csr -subj "/C=$KEY_COUNTRY/ST=$KEY_PROVINCE/L=$KEY_CITY/O=$KEY_ORG/CN=$PG_USER"
+        #signing the client cert
+        openssl x509 -req -in ${CERT_DIR}/${CLIENT_CERT_NAME}.csr -CA ${CERT_DIR}/root.crt -CAkey ${CERT_DIR}/server.key -out ${CERT_DIR}/${CLIENT_CERT_NAME}.crt -CAcreateserial
+    fi
 fi
 
 #fixing owherships
