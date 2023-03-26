@@ -112,7 +112,7 @@ actions:
         pswd: ${response.out}
 
   setWebadminPasswordOnPgPool:
-    - if (nodes.ctrl):
+    - if (nodes.pgpool):
       - cmd[pgpool]: |-
           [ -f ~/.pgpoolkey ] || echo 'defaultpgpoolkey' > ~/.pgpoolkey; chmod 600 ~/.pgpoolkey
           pg_enc -m -f /etc/pgpool-II/pgpool.conf -u webadmin ${globals.pswd}
