@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source /etc/profile
+source /etc/jelastic/metainf.conf
 
 CERT_DIR="/var/lib/jelastic/keys/SSL-TLS";
 [ -d "$CERT_DIR" ] || mkdir -p "$CERT_DIR";
