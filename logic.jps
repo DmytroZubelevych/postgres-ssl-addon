@@ -36,8 +36,9 @@ onAfterScaleOut [target]:
       affectedNodes: ${event.response.nodes.join(id,)}
 
 onAfterResetServicePassword[sqldb]:
-  - getPswd
-  - setWebadminPasswordOnPgPool
+  - if (nodes.pgpool):
+    - getPswd
+    - setWebadminPasswordOnPgPool
 
 onAfterClone:
   - script: return {result:0, jps:MANIFEST};
