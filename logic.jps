@@ -107,10 +107,13 @@ actions:
       
   getPswd:
     - cmd[${nodes.sqldb.master.id}]: |-
-        if [ -f /usr/local/sbin/jcm ]; then
-            jcm getPswd
-        else
-            true
+        source /etc/jelastic/metainf.conf
+        if [ "x$COMPUTE_TYPE" == "xpostgres" ] ; then
+            if [ -f /usr/local/sbin/jcm ]; then
+                jcm getPswd
+            else
+                true
+            fi
         fi
     - setGlobals: 
         pswd: ${response.out}
