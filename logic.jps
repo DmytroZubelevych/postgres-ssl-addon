@@ -69,9 +69,12 @@ actions:
 
   checkApplication:
     - cmd[${nodes.sqldb.master.id}]: |-
-        [ -f /root/check_app.sh ] && rm -f /root/check_app.sh;
-        wget -O /root/check_app.sh ${baseUrl}/scripts/check_app.sh?_r=${fn.random};
-        bash /root/check_app.sh;
+        source /etc/jelastic/metainf.conf
+        if [ "x$COMPUTE_TYPE" == "xpostgres" ] ; then
+            [ -f /root/check_app.sh ] && rm -f /root/check_app.sh;
+            wget -O /root/check_app.sh ${baseUrl}/scripts/check_app.sh?_r=${fn.random};
+            bash /root/check_app.sh;
+        fi
       user: root
     - if (response.out == "Non-supported"):
       - stopEvent:
