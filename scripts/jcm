@@ -1,0 +1,153 @@
+#!/bin/bash
+PGSQL_DATA="/var/lib/pgsql/data"
+PORT=5432
+MAX_WAL_SENDERS=10
+
+if [ -f "/.jelenv" ]
+then
+    OLD_IFS=$IFS; IFS="$(printf '\n ')" && IFS="${IFS% }"
+    vars="$(sed -r 's/([^=]+).*/\$\1/g' /.jelenv)"
+    for env in $(cat /.jelenv); do
+       env=$(echo "$env" | envsubst "$vars" )
+       export "$env"
+   done
+   for env in $(cat /.jelenv); do
+       env=$(echo "$env" | envsubst "$vars" )
+       export "$env"
+   done
+   IFS=$OLD_IFS
+fi
+
+setPswd(){
+    pswd=${1}
+    decode=${2}
+    [ "${decode}" = "true" ] && pswd=$(echo -e "${pswd}" | openssl enc -base64 -d -aes-256-cbc -salt -pass pass:${KEY_PASS})
+    [ -f ~/.pgpass ] && sed -i "s#\bwebadmin[^,]*#webadmin:${pswd}#g" ~/.pgpass
+    return 0
+}
+
+getPswd(){
+    encode=${1}
+    pswd=$(cat ~/.pgpass | grep webadmin | cut -d':' -f5)
+    [ "${encode}" = "true" ] && pswd=$(echo -e "${pswd}" | openssl enc -base64 -e -aes-256-cbc -salt -pass pass:${KEY_PASS})
+    echo $pswd
+}
+
+initPrimary(){
+    PASSWORD=$(cat ~/.pgpass | grep webadmin | cut -d':' -f5)
+    psql -U webadmin -d postgres -c "CREATE USER replication REPLICATION LOGIN CONNECTION LIMIT -1 ENCRYPTED PASSWORD '${PASSWORD}';"
+    pg_version=$(grep COMPUTE_TYPE_VERSION /etc/jelastic/metainf.conf 2>&1 | awk -F= '{print $2}')
+    sudo service postgresql stop
+    sed -ci -e "s|.*wal_level =.*|wal_level = hot_standby|g" ${PGSQL_DATA}/postgresql.conf
+    sed -ci -e "s|.*max_wal_senders =.*|max_wal_senders = ${MAX_WAL_SENDERS}|g" ${PGSQL_DATA}/postgresql.conf
+    if [[ "x$pg_version" == "x13" || "x$pg_version" == "x14" || "x$pg_version" == "x15" ]] ; then
+        sed -ci -e "s|.*wal_keep_segments =.*|wal_keep_size = 32|g" ${PGSQL_DATA}/postgresql.conf    
+    else
+        sed -ci -e "s|.*wal_keep_segments =.*|wal_keep_segments = 32|g" ${PGSQL_DATA}/postgresql.conf
+    fi
+    sed -ci -e "s|.*archive_mode =.*|archive_mode = on|g" ${PGSQL_DATA}/postgresql.conf
+    sed -ci -e "s|.*archive_command =.*|archive_command = 'cd .'|g" ${PGSQL_DATA}/postgresql.conf
+    sudo service postgresql start
+}
+
+initSecondary(){
+    #CURRENT_NODE_HOSTNAME=$(hostname|awk -F - '{print $1}')
+    #[[ "x${CURRENT_NODE_HOSTNAME}" == "x${MASTER_HOST}" ]] && return 0;
+    sudo service postgresql stop
+    rm -rf ${PGSQL_DATA};
+    pg_basebackup -h ${MASTER_IP} -D ${PGSQL_DATA} -U replication -v -P;
+    #updateReplicaHost ${MASTER_IP}
+    sed -ci -e 's/^[[:space:]]*ssl[[:space:]]*=[[:space:]]*on/ssl = off/' ${PGSQL_DATA}/postgresql.conf;
+    sed -ci -e "s|.*hot_standby =.*|hot_standby = on|g" ${PGSQL_DATA}/postgresql.conf;
+    major=$(psql --version | cut -d' ' -f3 | cut -d'.' -f1)
+    [ "$major" -lt "12" ] && {
+      echo "primary_conninfo = 'host=${MASTER_IP} port=${PORT} user=replication'" >> ${PGSQL_DATA}/recovery.conf;
+      echo "trigger_file = '/tmp/postgresql.trigger'" >> ${PGSQL_DATA}/recovery.conf;
+      echo "standby_mode = on" >> ${PGSQL_DATA}/recovery.conf;
+    } || {
+      echo "primary_conninfo = 'host=${MASTER_IP} port=${PORT} user=replication'" >> ${PGSQL_DATA}/postgresql.conf;
+      echo "promote_trigger_file = '/tmp/postgresql.trigger'" >> ${PGSQL_DATA}/postgresql.conf;
+      touch ${PGSQL_DATA}/standby.signal 
+    }
+    removeAllReplicaHosts
+    if [ "$UID" == '0' ]; then
+        chown -R postgres:postgres ${PGSQL_DATA};
+    fi
+    sudo service postgresql start
+}
+
+updateReplicaHost(){
+    host=${1}
+    sed -сi -e "s|host replication.*|host replication  replication       ${host}/32    trust|g" ${PGSQL_DATA}/pg_hba.conf
+}
+
+updatePrimaryConnInfo(){
+    major=$(psql --version | cut -d' ' -f3 | cut -d'.' -f1)
+    [ "$major" -lt "12" ] && {
+        sed -ci -e "s|primary_conninfo = .*|primary_conninfo = 'host=${MASTER_IP} port=${PORT} user=replication'|g" ${PGSQL_DATA}/recovery.conf
+    } || {
+        sed -ci -e "s|primary_conninfo = .*|primary_conninfo = 'host=${MASTER_IP} port=${PORT} user=replication'|g" ${PGSQL_DATA}/postgresql.conf
+    }
+}
+
+updateHbaConf(){
+    local IPS=$1
+    local localIP=$2
+    [ -z "$IPS" ] && { echo "Empty ip list " ; return 0; }
+    [ -z "$localIP" ] && { echo "Empty local ip" ; return 0; }
+    local IPlist=($( sed 's/,/ /g' <<< $IPS ))
+    local ips=("${IPlist[@]/$localIP}" )
+    removeAllReplicaHosts
+    for ip in ${ips[@]}; do
+        addReplicaHost $ip
+    done
+}
+
+addReplicaHost(){
+    secondary=$1
+    sed -ci -e "1i host replication  replication       ${secondary}/32    trust" ${PGSQL_DATA}/pg_hba.conf
+}
+
+removeReplicaHost(){
+    host=${1}
+    sed -ci -e "/${host}/d" ${PGSQL_DATA}/pg_hba.conf
+}
+
+removeAllReplicaHosts(){
+    sed -ci -e "/host replication/d" ${PGSQL_DATA}/pg_hba.conf
+}
+
+
+case ${1} in
+    initPrimary|initMaster)
+        initPrimary
+        ;;
+    initSecondary|initSlave)
+        initSecondary
+        ;;
+    addReplicaHost)
+        addReplicaHost "${2}"
+        ;;
+    removeReplicaHost)
+        removeReplicaHost "${2}"
+        ;;
+    removeAllReplicaHosts)
+        removeAllReplicaHosts
+        ;;
+    setPswd)
+        setPswd "${2}" "${3}"
+        ;;
+    getPswd)
+        getPswd "${2}"
+        ;;
+    updateReplicaHost)
+        updateReplicaHost "${2}"
+        ;;
+    updatePrimaryConnInfo)
+        updatePrimaryConnInfo
+        ;;
+    updateHbaConf)
+        shift;
+        updateHbaConf "$@"
+        ;;
+esac
