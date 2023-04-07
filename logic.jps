@@ -68,14 +68,24 @@ actions:
     - cmd[${targetNodes.nodeGroup}]: jem service restart
 
   checkApplication:
-    - cmd[${nodes.sqldb.master.id}]: |-
-        source /etc/jelastic/metainf.conf
-        if [ "x$COMPUTE_TYPE" == "xpostgres" ] ; then
-            [ -f /root/check_app.sh ] && rm -f /root/check_app.sh;
-            wget -O /root/check_app.sh ${baseUrl}/scripts/check_app.sh?_r=${fn.random};
-            bash /root/check_app.sh;
-        fi
-      user: root
+    - if (nodes.pgpool):
+      - cmd[${nodes.sqldb.master.id}]: |-
+          source /etc/jelastic/metainf.conf
+          if [ "x$COMPUTE_TYPE" == "xpostgres" ] ; then
+              [ -f /root/check_app.sh ] && rm -f /root/check_app.sh;
+              wget -O /root/check_app.sh ${baseUrl}/scripts/check_app.sh?_r=${fn.random};
+              bash /root/check_app.sh;
+          fi
+        user: root
+    - else
+      - cmd[${nodes.extra.master.id}]: |-
+          source /etc/jelastic/metainf.conf
+          if [ "x$COMPUTE_TYPE" == "xpostgres" ] ; then
+              [ -f /root/check_app.sh ] && rm -f /root/check_app.sh;
+              wget -O /root/check_app.sh ${baseUrl}/scripts/check_app.sh?_r=${fn.random};
+              bash /root/check_app.sh;
+          fi
+        user: root
     - if (response.out == "Non-supported"):
       - stopEvent:
           type: warning
