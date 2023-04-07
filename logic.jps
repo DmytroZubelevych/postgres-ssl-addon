@@ -78,8 +78,8 @@ actions:
           fi
         user: root
     - else:
-      - if (nodes.extra):
-        - cmd[${nodes.extra.master.id}]: |-
+      - if (nodes.sqldb2):
+        - cmd[${nodes.sqldb2.master.id}]: |-
             source /etc/jelastic/metainf.conf
             if [ "x$COMPUTE_TYPE" == "xpostgres" ] ; then
                 [ -f /root/check_app.sh ] && rm -f /root/check_app.sh;
@@ -128,8 +128,8 @@ actions:
               fi
           fi
     - else:
-      - if (nodes.extra):
-        - cmd[${nodes.extra.master.id}]: |-
+      - if (nodes.sqldb2):
+        - cmd[${nodes.sqldb2.master.id}]: |-
             source /etc/jelastic/metainf.conf
             if [ "x$COMPUTE_TYPE" == "xpostgres" ] ; then
                 if [ -f /usr/local/sbin/jcm ]; then
