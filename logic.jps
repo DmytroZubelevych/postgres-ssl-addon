@@ -24,16 +24,10 @@ onUninstall:
   - disableSSL
 
 onAfterRedeployContainer [target]:
-  - generateCerts: 
-      affectedNodes: ${event.response.nodes.join(id,)}
-  - enableSSL: 
-      affectedNodes: ${event.response.nodes.join(id,)}
-
-onAfterScaleOut [target]:
-  - generateCerts: 
-      affectedNodes: ${event.response.nodes.join(id,)}
-  - enableSSL: 
-      affectedNodes: ${event.response.nodes.join(id,)}
+  - addCertsForNewNodes
+      
+onAfterServiceScaleOut [target]:
+  - addCertsForNewNodes
 
 onAfterResetServicePassword[sqldb]:
   - if (nodes.pgpool):
@@ -234,3 +228,9 @@ actions:
         done
         jem service start
       user: root
+
+  addCertsForNewNodes:
+    - generateCerts: 
+        affectedNodes: ${event.response.nodes.join(id,)}
+    - enableSSL: 
+        affectedNodes: ${event.response.nodes.join(id,)}
