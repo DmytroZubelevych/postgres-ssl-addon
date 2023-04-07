@@ -77,7 +77,7 @@ actions:
               bash /root/check_app.sh;
           fi
         user: root
-    - else
+    - else:
       - cmd[${nodes.extra.master.id}]: |-
           source /etc/jelastic/metainf.conf
           if [ "x$COMPUTE_TYPE" == "xpostgres" ] ; then
@@ -116,15 +116,26 @@ actions:
       user: root
       
   getPswd:
-    - cmd[${nodes.sqldb.master.id}]: |-
-        source /etc/jelastic/metainf.conf
-        if [ "x$COMPUTE_TYPE" == "xpostgres" ] ; then
-            if [ -f /usr/local/sbin/jcm ]; then
-                jcm getPswd
-            else
-                true
-            fi
-        fi
+    - if (nodes.sqldb):
+      - cmd[${nodes.sqldb.master.id}]: |-
+          source /etc/jelastic/metainf.conf
+          if [ "x$COMPUTE_TYPE" == "xpostgres" ] ; then
+              if [ -f /usr/local/sbin/jcm ]; then
+                  jcm getPswd
+              else
+                  true
+              fi
+          fi
+    - else:
+      - cmd[${nodes.extra.master.id}]: |-
+          source /etc/jelastic/metainf.conf
+          if [ "x$COMPUTE_TYPE" == "xpostgres" ] ; then
+              if [ -f /usr/local/sbin/jcm ]; then
+                  jcm getPswd
+              else
+                  true
+              fi
+          fi
     - setGlobals: 
         pswd: ${response.out}
 
