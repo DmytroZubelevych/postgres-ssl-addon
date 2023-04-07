@@ -63,24 +63,12 @@ actions:
 
   checkApplication:
     - if (nodes.sqldb):
-      - cmd[${nodes.sqldb.master.id}]: |-
-          source /etc/jelastic/metainf.conf
-          if [ "x$COMPUTE_TYPE" == "xpostgres" ] ; then
-              [ -f /root/check_app.sh ] && rm -f /root/check_app.sh;
-              wget -O /root/check_app.sh ${baseUrl}/scripts/check_app.sh?_r=${fn.random};
-              bash /root/check_app.sh;
-          fi
-        user: root
+      - checkAppVersion:
+          masternode: ${nodes.sqldb.master.id}
     - else:
       - if (nodes.sqldb2):
-        - cmd[${nodes.sqldb2.master.id}]: |-
-            source /etc/jelastic/metainf.conf
-            if [ "x$COMPUTE_TYPE" == "xpostgres" ] ; then
-                [ -f /root/check_app.sh ] && rm -f /root/check_app.sh;
-                wget -O /root/check_app.sh ${baseUrl}/scripts/check_app.sh?_r=${fn.random};
-                bash /root/check_app.sh;
-            fi
-          user: root
+        - checkAppVersion:
+            masternode: ${nodes.sqldb2.master.id}
     - if (response.out == "Non-supported"):
       - stopEvent:
           type: warning
@@ -112,26 +100,12 @@ actions:
       
   getPswd:
     - if (nodes.sqldb):
-      - cmd[${nodes.sqldb.master.id}]: |-
-          source /etc/jelastic/metainf.conf
-          if [ "x$COMPUTE_TYPE" == "xpostgres" ] ; then
-              if [ -f /usr/local/sbin/jcm ]; then
-                  jcm getPswd
-              else
-                  true
-              fi
-          fi
+      - getPostgresPasswd:
+          masternode: ${nodes.sqldb.master.id}
     - else:
       - if (nodes.sqldb2):
-        - cmd[${nodes.sqldb2.master.id}]: |-
-            source /etc/jelastic/metainf.conf
-            if [ "x$COMPUTE_TYPE" == "xpostgres" ] ; then
-                if [ -f /usr/local/sbin/jcm ]; then
-                    jcm getPswd
-                else
-                    true
-                fi
-            fi
+        - getPostgresPasswd:
+            masternode: ${nodes.sqldb2.master.id}
     - setGlobals: 
         pswd: ${response.out}
 
@@ -236,11 +210,22 @@ actions:
         affectedNodes: ${event.response.nodes.join(id,)}
 
   checkAppVersion:
-    - cmd[${nodes.sqldb.master.id}]: |-
-      source /etc/jelastic/metainf.conf
-      if [ "x$COMPUTE_TYPE" == "xpostgres" ] ; then
-          [ -f /root/check_app.sh ] && rm -f /root/check_app.sh;
-          wget -O /root/check_app.sh ${baseUrl}/scripts/check_app.sh?_r=${fn.random};
-          bash /root/check_app.sh;
-      fi
-    user: root
+    - cmd[${this.masternode}]: |-
+        source /etc/jelastic/metainf.conf
+        if [ "x$COMPUTE_TYPE" == "xpostgres" ] ; then
+            [ -f /root/check_app.sh ] && rm -f /root/check_app.sh;
+            wget -O /root/check_app.sh ${baseUrl}/scripts/check_app.sh?_r=${fn.random};
+            bash /root/check_app.sh;
+        fi
+      user: root
+      
+  getPostgresPasswd:
+    - cmd[${this.masternode}]: |-
+        source /etc/jelastic/metainf.conf
+        if [ "x$COMPUTE_TYPE" == "xpostgres" ] ; then
+            if [ -f /usr/local/sbin/jcm ]; then
+                jcm getPswd
+            else
+                true
+            fi
+        fi
