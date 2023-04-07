@@ -68,7 +68,7 @@ actions:
     - cmd[${targetNodes.nodeGroup}]: jem service restart
 
   checkApplication:
-    - if (nodes.pgpool):
+    - if (nodes.sqldb):
       - cmd[${nodes.sqldb.master.id}]: |-
           source /etc/jelastic/metainf.conf
           if [ "x$COMPUTE_TYPE" == "xpostgres" ] ; then
