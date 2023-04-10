@@ -15,6 +15,7 @@ globals:
   pgpoolConfig: /etc/pgpool-II/pgpool.conf
 
 onInstall:
+  - checkApplication
   - turnOnSSLForNodes
       nodesToEnableSSL: ${targetNodes.nodeGroup}
 
@@ -75,13 +76,9 @@ actions:
     - fixCertOwnPerm
 
   checkApplication:
-    - if (nodes.sqldb):
+    - if ('${event.params.nodeGroup}'.indexOf('sqldb') > -1):
       - checkAppVersion:
-          masternode: ${nodes.sqldb.master.id}
-    - else:
-      - if (nodes.sqldb2):
-        - checkAppVersion:
-            masternode: ${nodes.sqldb2.master.id}
+          masternode: ${targetNodes.nodeGroup}
     - if (response.out == "Non-supported"):
       - stopEvent:
           type: warning
