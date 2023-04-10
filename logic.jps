@@ -25,7 +25,10 @@ onUninstall:
 
 onAfterRedeployContainer[${targetNodes.nodeGroup}]:
   - if (!${event.params.useExistingVolumes:true}):
-      - addCertsForNewNodes
+     - generateCerts: 
+         affectedNodes: ${targetNodes.nodeGroup}
+     - enableSSL:
+         affectedNodes: ${targetNodes.nodeGroup}
   
 onBeforeServiceScaleOut[sqldb]:
   - cmd[${nodes.sqldb.master.id}]: |-
