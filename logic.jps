@@ -89,11 +89,11 @@ actions:
         wget -O /usr/local/sbin/selfcertgen ${baseUrl}/scripts/selfcertgen?_r=${fn.random};
         chmod +x /usr/local/sbin/selfcertgen
         selfcertgen;
-        chown 700:700 /var/lib/jelastic/keys/SSL-TLS/* /usr/local/sbin/selfcertgen; chmod 600 /var/lib/jelastic/keys/SSL-TLS/*
+        chown -R postgres:postgres /var/lib/jelastic/keys/SSL-TLS /usr/local/sbin/selfcertgen; chmod 600 /var/lib/jelastic/keys/SSL-TLS/*
       user: root
     - cmd[${this.affectedNodes}]: |-
-        [ -d "/var/lib/jelastic/keys/SSL-TLS/client" ] || mkdir -p "/var/lib/jelastic/keys/SSL-TLS/client";
-        [ -d "/var/lib/jelastic/keys/SSL-TLS/server" ] || mkdir -p "/var/lib/jelastic/keys/SSL-TLS/server";
+        rm -rf /var/lib/jelastic/keys/SSL-TLS/client; mkdir -p /var/lib/jelastic/keys/SSL-TLS/client;
+        rm -rf /var/lib/jelastic/keys/SSL-TLS/server; mkdir -p /var/lib/jelastic/keys/SSL-TLS/server;
         chown -R postgres:postgres /var/lib/jelastic/keys/SSL-TLS/*
         rm -f /var/lib/jelastic/keys/SSL-TLS/client.csr
         for i in client.crt client.key
