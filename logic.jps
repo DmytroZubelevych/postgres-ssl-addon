@@ -112,8 +112,8 @@ actions:
     - if ('${targetNodes.nodeGroup}'.indexOf('sqldb') > -1):
       - getPostgresPasswd:
           masternode: ${targetNodes.nodeGroup}
-    - setGlobals: 
-        pswd: ${response.out}
+      - setGlobals: 
+          pswd: ${response.out}
 
   setWebadminPasswordOnPgPool:
     - if (nodes.pgpool):
@@ -122,9 +122,10 @@ actions:
           pg_enc -m -f /etc/pgpool-II/pgpool.conf -u webadmin ${globals.pswd}
 
   enableSSL:
-    - if (nodes.pgpool):
-      - getPswd
-      - setWebadminPasswordOnPgPool
+    - if ('${targetNodes.nodeGroup}'.indexOf('sqldb') > -1):
+      - if (nodes.pgpool):
+        - getPswd
+        - setWebadminPasswordOnPgPool
     - cmd[${this.affectedNodes}]: |-
         echo "/var/lib/jelastic/keys/SSL-TLS" >> /etc/jelastic/redeploy.conf
         source /etc/jelastic/metainf.conf
