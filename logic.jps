@@ -35,13 +35,14 @@ onBeforeServiceScaleOut[${targetNodes.nodeGroup}]:
     - cmd[${nodes.sqldb.master.id}]: |-
         sed -ci -e 's/^[[:space:]]*ssl[[:space:]]*=[[:space:]]*on/ssl = off/' ${globals.pgConfig}
       
-onAfterServiceScaleOut[sqldb]:
+onAfterServiceScaleOut[${targetNodes.nodeGroup}]:
   - addCertsForNewNodes
-  - cmd[sqldb]: |-
-      sed -ci -e "s/^ssl = off/ssl = on/" ${globals.pgConfig}
+  - if ('${event.params.nodeGroup}'.indexOf('sqldb') > -1):
+    - cmd[${targetNodes.nodeGroup}]: |-
+        sed -ci -e "s/^ssl = off/ssl = on/" ${globals.pgConfig}
   - fixCertOwnPerm
-  - forEach(nodes.sqldb):
-    - cmd[${@i.id}]: jem service restart
+  - if ('${event.params.nodeGroup}'.indexOf('sqldb') > -1):
+    - cmd[${targetNodes.nodeGroup}]: jem service restart
 
 onAfterResetServicePassword[${targetNodes.nodeGroup}]:
   - if ('${event.params.nodeGroup}'.indexOf('sqldb') > -1):
