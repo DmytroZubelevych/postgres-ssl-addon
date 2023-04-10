@@ -42,10 +42,11 @@ onAfterServiceScaleOut[sqldb]:
   - forEach(nodes.sqldb):
     - cmd[${@i.id}]: jem service restart
 
-onAfterResetServicePassword[sqldb]:
-  - if (nodes.pgpool):
-    - getPswd
-    - setWebadminPasswordOnPgPool
+onAfterResetServicePassword[${targetNodes.nodeGroup}]:
+  - if ('${event.response.nodeGroup}'.indexOf('sqldb') > -1):
+    - if (nodes.pgpool):
+      - getPswd
+      - setWebadminPasswordOnPgPool
 
 onAfterClone:
   - script: return {result:0, jps:MANIFEST};
