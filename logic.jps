@@ -76,7 +76,7 @@ actions:
     - fixCertOwnPerm
 
   checkApplication:
-    - if ('${event.params.nodeGroup}'.indexOf('sqldb') > -1):
+    - if ('${targetNodes.nodeGroup}'.indexOf('sqldb') > -1):
       - checkAppVersion:
           masternode: ${targetNodes.nodeGroup}
     - if (response.out == "Non-supported"):
@@ -109,13 +109,9 @@ actions:
       user: root
       
   getPswd:
-    - if (nodes.sqldb):
+    - if ('${targetNodes.nodeGroup}'.indexOf('sqldb') > -1):
       - getPostgresPasswd:
-          masternode: ${nodes.sqldb.master.id}
-    - else:
-      - if (nodes.sqldb2):
-        - getPostgresPasswd:
-            masternode: ${nodes.sqldb2.master.id}
+          masternode: ${targetNodes.nodeGroup}
     - setGlobals: 
         pswd: ${response.out}
 
