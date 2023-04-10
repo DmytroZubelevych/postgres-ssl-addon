@@ -79,10 +79,10 @@ actions:
     - if ('${targetNodes.nodeGroup}'.indexOf('sqldb') > -1):
       - checkAppVersion:
           masternode: ${targetNodes.nodeGroup}
-    - if (response.out == "Non-supported"):
-      - stopEvent:
-          type: warning
-          message: Database version is not supported.
+      - if (response.out == "Non-supported"):
+        - stopEvent:
+            type: warning
+            message: Database version is not supported.
 
   generateCerts:
     - cmd[${this.affectedNodes}]: |-
