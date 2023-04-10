@@ -15,20 +15,16 @@ globals:
   pgpoolConfig: /etc/pgpool-II/pgpool.conf
 
 onInstall:
-  - generateCerts: 
-      affectedNodes: ${targetNodes.nodeGroup}
-  - enableSSL:
-      affectedNodes: ${targetNodes.nodeGroup}
+  - turnOnSSLForNodes
+      nodesToEnableSSL: ${targetNodes.nodeGroup}
 
 onUninstall:
   - disableSSL
 
 onAfterRedeployContainer[${targetNodes.nodeGroup}]:
   - if (!${event.params.useExistingVolumes:true}):
-     - generateCerts: 
-         affectedNodes: ${targetNodes.nodeGroup}
-     - enableSSL:
-         affectedNodes: ${targetNodes.nodeGroup}
+     - turnOnSSLForNodes
+         nodesToEnableSSL: ${targetNodes.nodeGroup}
   
 onBeforeServiceScaleOut[${targetNodes.nodeGroup}]:
   - if ('${event.params.nodeGroup}'.indexOf('sqldb') > -1):
@@ -248,5 +244,11 @@ actions:
         fi
 
   fixCertOwnPerm:
-    - cmd[{targetNodes.nodeGroup}]: |-
+    - cmd[${targetNodes.nodeGroup}]: |-
         chown -R postgres:postgres /var/lib/jelastic/keys/SSL-TLS
+        
+  turnOnSSLForNodes:
+    - generateCerts: 
+        affectedNodes: ${this.nodesToEnableSSL}
+    - enableSSL:
+        affectedNodes: ${this.nodesToEnableSSL}
