@@ -28,7 +28,7 @@ onAfterRedeployContainer[${targetNodes.nodeGroup}]:
   
 onBeforeServiceScaleOut[${targetNodes.nodeGroup}]:
   - if ('${event.params.nodeGroup}'.indexOf('sqldb') > -1):
-    - cmd[${nodes.sqldb.master.id}]: |-
+    - cmd[${targetNodes.nodeGroup}]: |-
         sed -ci -e 's/^[[:space:]]*ssl[[:space:]]*=[[:space:]]*on/ssl = off/' ${globals.pgConfig}
       
 onAfterServiceScaleOut[${targetNodes.nodeGroup}]:
