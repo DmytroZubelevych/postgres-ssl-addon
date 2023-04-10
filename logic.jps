@@ -23,7 +23,7 @@ onInstall:
 onUninstall:
   - disableSSL
 
-onAfterRedeployContainer[target]:
+onAfterRedeployContainer[${targetNodes.nodeGroup}]:
   - if (!${event.params.useExistingVolumes:true}):
       - addCertsForNewNodes
   
