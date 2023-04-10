@@ -16,7 +16,7 @@ globals:
 
 onInstall:
   - checkApplication
-  - turnOnSSLForNodes
+  - turnOnSSLForNodes:
       nodesToEnableSSL: ${targetNodes.nodeGroup}
 
 onUninstall:
@@ -24,7 +24,7 @@ onUninstall:
 
 onAfterRedeployContainer[${targetNodes.nodeGroup}]:
   - if (!${event.params.useExistingVolumes:true}):
-     - turnOnSSLForNodes
+     - turnOnSSLForNodes:
          nodesToEnableSSL: ${targetNodes.nodeGroup}
   
 onBeforeServiceScaleOut[${targetNodes.nodeGroup}]:
@@ -215,7 +215,7 @@ actions:
       user: root
 
   addCertsForNewNodes:
-    - turnOnSSLForNodes
+    - turnOnSSLForNodes:
         nodesToEnableSSL: ${event.response.nodes.join(id,)}
 
   checkAppVersion:
