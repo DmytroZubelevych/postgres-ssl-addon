@@ -126,8 +126,9 @@ actions:
           pg_enc -m -f /etc/pgpool-II/pgpool.conf -u webadmin ${globals.pswd}
 
   enableSSL:
-    - getPswd
-    - setWebadminPasswordOnPgPool
+    - if (nodes.pgpool):
+      - getPswd
+      - setWebadminPasswordOnPgPool
     - cmd[${this.affectedNodes}]: |-
         echo "/var/lib/jelastic/keys/SSL-TLS" >> /etc/jelastic/redeploy.conf
         source /etc/jelastic/metainf.conf
