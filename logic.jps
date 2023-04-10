@@ -26,15 +26,15 @@ onUninstall:
 onAfterRedeployContainer[target]:
   - addCertsForNewNodes
   
-onBeforeServiceScaleOut[target]:
-  - cmd[target]: |
+onBeforeServiceScaleOut[sqldb]:
+  - cmd[${nodes.sqldb.master.id}]: |
       if [ -e ${globals.pgConfig} ]; then
           sed -ci -e 's/^[[:space:]]*ssl[[:space:]]*=[[:space:]]*on/ssl = off/' ${globals.pgConfig}
       fi
       
-onAfterServiceScaleOut[target]:
+onAfterServiceScaleOut[sqldb]:
   - addCertsForNewNodes
-  - cmd[target]: |
+  - cmd[${nodes.sqldb.master.id}]: |
       if [ -e ${globals.pgConfig} ]; then
           for i in ssl ssl_prefer_server_cipher
               do
