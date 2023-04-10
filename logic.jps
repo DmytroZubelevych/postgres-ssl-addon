@@ -15,37 +15,24 @@ globals:
   pgpoolConfig: /etc/pgpool-II/pgpool.conf
 
 onInstall:
-  - checkApplication
-  - turnOnSSLForNodes:
-      nodesToEnableSSL: ${targetNodes.nodeGroup}
+  - generateCerts: 
+      affectedNodes: ${targetNodes.nodeGroup}
+  - enableSSL:
+      affectedNodes: ${targetNodes.nodeGroup}
 
 onUninstall:
   - disableSSL
 
-onAfterRedeployContainer[${targetNodes.nodeGroup}]:
-  - if (!${event.params.useExistingVolumes:true}):
-     - turnOnSSLForNodes:
-         nodesToEnableSSL: ${targetNodes.nodeGroup}
-  
-onBeforeServiceScaleOut[${targetNodes.nodeGroup}]:
-  - if ('${event.params.nodeGroup}'.indexOf('sqldb') > -1):
-    - cmd[${targetNodes.nodeGroup}]: |-
-        sed -ci -e 's/^[[:space:]]*ssl[[:space:]]*=[[:space:]]*on/ssl = off/' ${globals.pgConfig}
-      
-onAfterServiceScaleOut[${targetNodes.nodeGroup}]:
+onAfterRedeployContainer [target]:
   - addCertsForNewNodes
-  - if ('${event.params.nodeGroup}'.indexOf('sqldb') > -1):
-    - cmd[${targetNodes.nodeGroup}]: |-
-        sed -ci -e "s/^ssl = off/ssl = on/" ${globals.pgConfig}
-  - fixCertOwnPerm
-  - if ('${event.params.nodeGroup}'.indexOf('sqldb') > -1):
-    - cmd[${targetNodes.nodeGroup}]: jem service restart
+      
+onAfterServiceScaleOut [target]:
+  - addCertsForNewNodes
 
-onAfterResetServicePassword[${targetNodes.nodeGroup}]:
-  - if ('${event.params.nodeGroup}'.indexOf('sqldb') > -1):
-    - if (nodes.pgpool):
-      - getPswd
-      - setWebadminPasswordOnPgPool
+onAfterResetServicePassword[sqldb]:
+  - if (nodes.pgpool):
+    - getPswd
+    - setWebadminPasswordOnPgPool
 
 onAfterClone:
   - script: return {result:0, jps:MANIFEST};
@@ -73,16 +60,19 @@ actions:
     - generateCerts:
         affectedNodes: ${targetNodes.nodeGroup}
     - cmd[${targetNodes.nodeGroup}]: jem service restart
-    - fixCertOwnPerm
 
   checkApplication:
-    - if ('${targetNodes.nodeGroup}'.indexOf('sqldb') > -1):
+    - if (nodes.sqldb):
       - checkAppVersion:
-          masternode: ${targetNodes.nodeGroup}
-      - if (response.out == "Non-supported"):
-        - stopEvent:
-            type: warning
-            message: Database version is not supported.
+          masternode: ${nodes.sqldb.master.id}
+    - else:
+      - if (nodes.sqldb2):
+        - checkAppVersion:
+            masternode: ${nodes.sqldb2.master.id}
+    - if (response.out == "Non-supported"):
+      - stopEvent:
+          type: warning
+          message: Database version is not supported.
 
   generateCerts:
     - cmd[${this.affectedNodes}]: |-
@@ -90,11 +80,11 @@ actions:
         wget -O /usr/local/sbin/selfcertgen ${baseUrl}/scripts/selfcertgen?_r=${fn.random};
         chmod +x /usr/local/sbin/selfcertgen
         selfcertgen;
-        chown -R postgres:postgres /var/lib/jelastic/keys/SSL-TLS /usr/local/sbin/selfcertgen; chmod 600 /var/lib/jelastic/keys/SSL-TLS/*
+        chown 700:700 /var/lib/jelastic/keys/SSL-TLS/* /usr/local/sbin/selfcertgen; chmod 600 /var/lib/jelastic/keys/SSL-TLS/*
       user: root
     - cmd[${this.affectedNodes}]: |-
-        rm -rf /var/lib/jelastic/keys/SSL-TLS/client; mkdir -p /var/lib/jelastic/keys/SSL-TLS/client;
-        rm -rf /var/lib/jelastic/keys/SSL-TLS/server; mkdir -p /var/lib/jelastic/keys/SSL-TLS/server;
+        [ -d "/var/lib/jelastic/keys/SSL-TLS/client" ] || mkdir -p "/var/lib/jelastic/keys/SSL-TLS/client";
+        [ -d "/var/lib/jelastic/keys/SSL-TLS/server" ] || mkdir -p "/var/lib/jelastic/keys/SSL-TLS/server";
         chown -R postgres:postgres /var/lib/jelastic/keys/SSL-TLS/*
         rm -f /var/lib/jelastic/keys/SSL-TLS/client.csr
         for i in client.crt client.key
@@ -109,11 +99,15 @@ actions:
       user: root
       
   getPswd:
-    - if ('${targetNodes.nodeGroup}'.indexOf('sqldb') > -1):
+    - if (nodes.sqldb):
       - getPostgresPasswd:
-          masternode: ${targetNodes.nodeGroup}
-      - setGlobals: 
-          pswd: ${response.out}
+          masternode: ${nodes.sqldb.master.id}
+    - else:
+      - if (nodes.sqldb2):
+        - getPostgresPasswd:
+            masternode: ${nodes.sqldb2.master.id}
+    - setGlobals: 
+        pswd: ${response.out}
 
   setWebadminPasswordOnPgPool:
     - if (nodes.pgpool):
@@ -122,10 +116,8 @@ actions:
           pg_enc -m -f /etc/pgpool-II/pgpool.conf -u webadmin ${globals.pswd}
 
   enableSSL:
-    - if ('${targetNodes.nodeGroup}'.indexOf('sqldb') > -1):
-      - if (nodes.pgpool):
-        - getPswd
-        - setWebadminPasswordOnPgPool
+    - getPswd
+    - setWebadminPasswordOnPgPool
     - cmd[${this.affectedNodes}]: |-
         echo "/var/lib/jelastic/keys/SSL-TLS" >> /etc/jelastic/redeploy.conf
         source /etc/jelastic/metainf.conf
@@ -212,8 +204,10 @@ actions:
       user: root
 
   addCertsForNewNodes:
-    - turnOnSSLForNodes:
-        nodesToEnableSSL: ${event.response.nodes.join(id,)}
+    - generateCerts: 
+        affectedNodes: ${event.response.nodes.join(id,)}
+    - enableSSL: 
+        affectedNodes: ${event.response.nodes.join(id,)}
 
   checkAppVersion:
     - cmd[${this.masternode}]: |-
@@ -235,13 +229,3 @@ actions:
                 true
             fi
         fi
-
-  fixCertOwnPerm:
-    - cmd[${targetNodes.nodeGroup}]: |-
-        chown -R postgres:postgres /var/lib/jelastic/keys/SSL-TLS
-        
-  turnOnSSLForNodes:
-    - generateCerts: 
-        affectedNodes: ${this.nodesToEnableSSL}
-    - enableSSL:
-        affectedNodes: ${this.nodesToEnableSSL}
