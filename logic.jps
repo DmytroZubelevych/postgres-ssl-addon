@@ -35,7 +35,9 @@ onAfterServiceScaleOut[sqldb]:
   - cmd[sqldb]: |-
       sed -ci -e "s/^ssl = off/ssl = on/" ${globals.pgConfig}
   - fixCertOwnPerm
-  - jem service restart
+  - forEach(nodes.sqlbd):
+    - cmd[${@i.id}]: |-
+        jem service restart
 
 onAfterResetServicePassword[sqldb]:
   - if (nodes.pgpool):
