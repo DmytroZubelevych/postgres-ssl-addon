@@ -235,3 +235,7 @@ actions:
                 true
             fi
         fi
+
+  fixCertOwnPerm:
+    - cmd[target]: |-
+        chown -R postgres:postgres /var/lib/jelastic/keys/SSL-TLS
