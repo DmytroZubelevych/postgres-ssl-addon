@@ -23,11 +23,24 @@ onInstall:
 onUninstall:
   - disableSSL
 
-onAfterRedeployContainer [target]:
+onAfterRedeployContainer[target]:
   - addCertsForNewNodes
+  
+onBeforeServiceScaleOut[target]:
+  - cmd[target]: |
+      if [ -e ${globals.pgConfig} ]; then
+          sed -ci -e 's/^[[:space:]]*ssl[[:space:]]*=[[:space:]]*on/ssl = off/' ${globals.pgConfig}
+      fi
       
-onAfterServiceScaleOut [target]:
+onAfterServiceScaleOut[target]:
   - addCertsForNewNodes
+  - cmd[target]: |
+      if [ -e ${globals.pgConfig} ]; then
+          for i in ssl ssl_prefer_server_cipher
+              do
+                  sed -ci -e "s/^${i} = off/${i} = on/" ${globals.pgConfig} 
+              done
+      fi  
 
 onAfterResetServicePassword[sqldb]:
   - if (nodes.pgpool):
