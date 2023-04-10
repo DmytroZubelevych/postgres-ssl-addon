@@ -241,5 +241,5 @@ actions:
         fi
 
   fixCertOwnPerm:
-    - cmd[target]: |-
+    - cmd[{targetNodes.nodeGroup}]: |-
         chown -R postgres:postgres /var/lib/jelastic/keys/SSL-TLS
