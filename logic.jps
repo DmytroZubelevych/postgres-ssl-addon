@@ -239,6 +239,7 @@ actions:
   fixCertOwnPerm:
     - cmd[${targetNodes.nodeGroup}]: |-
         chown -R postgres:postgres /var/lib/jelastic/keys/SSL-TLS
+      user: root
         
   turnOnSSLForNodes:
     - generateCerts: 
