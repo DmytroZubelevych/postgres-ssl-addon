@@ -8,14 +8,15 @@ description: Enforce DB Connection to use SSL/TLS. Certificate folder /var/lib/j
 baseUrl: https://raw.githubusercontent.com/DmytroZubelevych/postgres-ssl-addon/main
 
 targetNodes:
-  - postgresql
-  - postgres11
-  - postgres12
-  - postgres13
-  - postgres14
-  - postgres15
-  - pgpool2
-  - pgpool2-4
+  nodeType:
+    - postgresql
+    - postgres11
+    - postgres12
+    - postgres13
+    - postgres14
+    - postgres15
+    - pgpool2
+    - pgpool2-4
 
 globals:
   pgConfig: /var/lib/pgsql/data/postgresql.conf
